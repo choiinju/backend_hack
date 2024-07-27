@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\wendy\OneDrive\바탕 화면\backend_hack\venv
+set VIRTUAL_ENV=F:\backend_hack\venv
 
 if not defined PROMPT set PROMPT=$P$G
 
