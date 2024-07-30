@@ -23,7 +23,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     has_priority=models.BooleanField(default=False)
     card_number=models.CharField(max_length=16, unique=True,null=True)
-    point=models.IntegerField(unique=False, null=True)
+    point=models.IntegerField(default=1000,unique=False)
     
     # 우선권 
     start_date = models.DateTimeField(null=True)

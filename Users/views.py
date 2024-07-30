@@ -147,3 +147,38 @@ class ChangePriorityAPIView(APIView):
         if user.has_priority != has_priority:
             user.has_priority = has_priority
             user.save()
+
+class EditscoreAPIView(APIView):
+    
+    def post(self, request, *args, **kwargs):
+        yielding_user_id = request.data.get('yielding_user_id')
+        receiving_user_id = request.data.get('receiving_user_id')
+
+        try:
+            yielding_user = User.objects.get(login_id=yielding_user_id)
+            receiving_user = User.objects.get(login_id=receiving_user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Logic for updating points
+        if receiving_user.has_priority:
+            # No deduction for receiving user with priority
+            pass
+        else:
+            # Deduction for receiving user without priority
+            receiving_user.point -= 300
+
+        # Addition for yielding user (regardless of priority)
+        yielding_user.point += 150
+
+        yielding_user.save()
+        receiving_user.save()
+
+        yielding_serializer = UserSerializer(yielding_user)
+        receiving_serializer = UserSerializer(receiving_user)
+
+        return Response({
+            'success': True,
+            'yielding_user': yielding_serializer.data,
+            'receiving_user': receiving_serializer.data
+        }, status=status.HTTP_200_OK)
