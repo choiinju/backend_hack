@@ -1,9 +1,5 @@
 from django.shortcuts import render
 
-<<<<<<< HEAD
-def index(request):
-    return render(request, 'Users/index.html')
-=======
 # Create your views here.
 from rest_framework.views import APIView
 from .serializers import *
@@ -164,6 +160,10 @@ class EditscoreAPIView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
+        # Update priority status
+        yielding_user.save()  # Update has_priority based on Priority entries
+        receiving_user.save()  # Update has_priority based on Priority entries
+
         # Logic for updating points
         if receiving_user.has_priority:
             # No deduction for receiving user with priority
@@ -186,4 +186,54 @@ class EditscoreAPIView(APIView):
             'yielding_user': yielding_serializer.data,
             'receiving_user': receiving_serializer.data
         }, status=status.HTTP_200_OK)
->>>>>>> nayeon-real
+
+class GetPriorityTypeAPIView(APIView):
+    def get(self, request, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        current_time = timezone.now()
+        priority = user.priority_set.filter(end_date__gt=current_time).first()
+
+        if priority:
+            priority_type = priority.priority_type
+        else:
+            priority_type = "일반인"  # Default value for non-priority users
+
+        return Response({
+            'user_id': user.id,
+            'priority_type': priority_type
+        }, status=status.HTTP_200_OK)
+
+class CashBackAPIView(APIView):
+    def post(self, request):
+        user_id = request.data.get('user_id')
+        cash_amount = request.data.get('cash_amount')
+
+        if not user_id or not cash_amount:
+            return Response({'error': 'User ID and cash amount are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # 현금값을 포인트로 변환 (예: 1 현금 = 100 포인트)
+        conversion_rate = 100
+        points_needed = cash_amount * conversion_rate
+
+        if user.point < points_needed:
+            return Response({'error': 'Insufficient points'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 포인트 차감
+        user.point -= points_needed
+        user.save()
+
+        return Response({
+            'user_id': user.id,
+            'remaining_points': user.point,
+            'message': f'Converted {cash_amount} cash to points. {points_needed} points deducted.'
+        }, status=status.HTTP_200_OK)
+
