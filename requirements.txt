@@ -1,7 +1,18 @@
 asgiref==3.8.1
+<<<<<<< HEAD
 Django==5.0.7
 djangorestframework==3.15.2
 djangorestframework-simplejwt==5.3.1
+=======
+# Django==3.2.11
+# django-cors-headers==4.4.0
+# djangorestframework==3.15.2
+# djangorestframework-simplejwt==4.4.0
+Django
+djangorestframework
+django-cors-headers
+djangorestframework-simplejwt
+>>>>>>> nayeon-real
 mysqlclient==2.2.4
 PyJWT==2.8.0
 sqlparse==0.5.1

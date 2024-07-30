@@ -1,4 +1,5 @@
 from django.contrib import admin
+<<<<<<< HEAD
 from django.contrib.auth.admin import UserAdmin
 from .models import User
 
@@ -7,3 +8,7 @@ UserAdmin.fieldsets+=(("Custom fields", {"fields":("first_ex","card_number","poi
 
 
 
+=======
+
+# Register your models here.
+>>>>>>> nayeon-real
