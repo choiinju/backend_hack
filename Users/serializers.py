@@ -39,3 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
             password=validated_data['password']
         )
         return user
+
+class CashBackSerializer(serializers.Serializer):
+    user_id = serializers.CharField()
+    cash_amount = serializers.IntegerField()

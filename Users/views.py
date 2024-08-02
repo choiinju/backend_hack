@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.utils import timezone
 from datetime import timedelta
-
+from .serializers import CashBackSerializer
 
 class RegisterAPIView(APIView):
     def post(self, request):
@@ -147,3 +147,86 @@ class ChangePriorityAPIView(APIView):
         if user.has_priority != has_priority:
             user.has_priority = has_priority
             user.save()
+class EditscoreAPIView(APIView):
+    
+    def post(self, request, *args, **kwargs):
+        yielding_user_id = request.data.get('yielding_user_id')
+        receiving_user_id = request.data.get('receiving_user_id')
+
+        try:
+            yielding_user = User.objects.get(login_id=yielding_user_id)
+            receiving_user = User.objects.get(login_id=receiving_user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Logic for updating points
+        if receiving_user.has_priority:
+            # No deduction for receiving user with priority
+            pass
+        else:
+            # Deduction for receiving user without priority
+            receiving_user.point -= 300
+
+        # Addition for yielding user (regardless of priority)
+        yielding_user.point += 150
+
+        yielding_user.save()
+        receiving_user.save()
+
+        yielding_serializer = UserSerializer(yielding_user)
+        receiving_serializer = UserSerializer(receiving_user)
+
+        return Response({
+            'success': True,
+            'yielding_user': yielding_serializer.data,
+            'receiving_user': receiving_serializer.data
+        }, status=status.HTTP_200_OK)
+class GetPriorityTypeAPIView(APIView):
+    def get(self, request, user_id):
+        try:
+            user = User.objects.get(login_id=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        current_time = timezone.now()
+        priority = None
+
+        if user.end_date and user.end_date > current_time:
+            priority = user.priority_type
+        else:
+            priority = "일반인"  # Default value for non-priority users
+
+        return Response({
+            'user_id': user.login_id,
+            'priority_type': priority
+        }, status=status.HTTP_200_OK)
+
+class CashBackAPIView(APIView):
+    def post(self, request):
+        serializer = CashBackSerializer(data=request.data)
+        if serializer.is_valid():
+            login_id = serializer.validated_data['user_id']
+            cash_amount = serializer.validated_data['cash_amount']
+
+            try:
+                user = User.objects.get(login_id=login_id)
+            except User.DoesNotExist:
+                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            # 현금값을 포인트로 변환 (예: 1 현금 = 1 포인트)
+            conversion_rate = 1
+            points_needed = cash_amount * conversion_rate
+
+            if user.point < points_needed:
+                return Response({'error': 'Insufficient points'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 포인트 차감
+            user.point -= points_needed
+            user.save()
+
+            return Response({
+                'user_id': user.id,
+                'remaining_points': user.point,
+                'message': f'Converted {cash_amount} cash to points. {points_needed} points deducted.'
+            }, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
