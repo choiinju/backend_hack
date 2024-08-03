@@ -230,3 +230,52 @@ class CashBackAPIView(APIView):
                 'message': f'Converted {cash_amount} cash to points. {points_needed} points deducted.'
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class MatchedCreateAPIView(APIView):
+    def post(self, request):
+        yielding_user_id = request.data.get('yielding_user_id')
+        receiving_user_id = request.data.get('receiving_user_id')
+        review = request.data.get('review')
+        describe = request.data.get('describe')
+
+        if not yielding_user_id or not receiving_user_id:
+            return Response({'error': 'Both yielding_user_id and receiving_user_id are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            yielding_user = User.objects.get(login_id=yielding_user_id)
+            receiving_user = User.objects.get(login_id=receiving_user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        matched = Matched(
+            yielding_user=yielding_user,
+            receiving_user=receiving_user,
+            review=review,
+            describe=describe
+        )
+        matched.save()
+
+        serializer = MatchedSerializer(matched)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class GetDescribeAPIView(APIView):
+    def post(self, request):
+        yielding_user_id = request.data.get('yielding_user_id')
+        receiving_user_id = request.data.get('receiving_user_id')
+        date = request.data.get('date')
+
+        if not yielding_user_id or not receiving_user_id or not date:
+            return Response({'error': 'yielding_user_id, receiving_user_id, and date are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            yielding_user = User.objects.get(login_id=yielding_user_id)
+            receiving_user = User.objects.get(login_id=receiving_user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            matched = Matched.objects.get(yielding_user=yielding_user, receiving_user=receiving_user, date=date)
+        except Matched.DoesNotExist:
+            return Response({'error': 'Matched event not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({'describe': matched.describe}, status=status.HTTP_200_OK)

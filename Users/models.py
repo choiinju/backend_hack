@@ -36,6 +36,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 	# 사용자의 username field는 student_id으로 설정 (student_id로 로그인)
     USERNAME_FIELD = 'login_id'
+
+class Matched(models.Model):
+    yielding_user = models.ForeignKey(User, related_name='yielded_matches', on_delete=models.CASCADE)
+    receiving_user = models.ForeignKey(User, related_name='received_matches', on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    review = models.TextField()
+    describe = models.TextField() 
 #login_id=username
 #first_ex=우선권 보유 현황
 #card_number=카드 번호

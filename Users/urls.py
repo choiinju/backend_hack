@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import RegisterAPIView, LoginAPIView, GetInfoAPIView, ChangePriorityAPIView,EditscoreAPIView,CashBackAPIView,GetPriorityTypeAPIView
+from .views import RegisterAPIView, LoginAPIView, GetInfoAPIView, ChangePriorityAPIView,EditscoreAPIView,CashBackAPIView,GetPriorityTypeAPIView,MatchedCreateAPIView,GetDescribeAPIView
+
 
 
 urlpatterns = [
@@ -10,5 +11,6 @@ urlpatterns = [
     path('edit_score/', EditscoreAPIView.as_view(), name='edit_score'),
     path('api/getprioritytype/<str:user_id>/', GetPriorityTypeAPIView.as_view(), name='getprioritytype'),
     path('cash_back/', CashBackAPIView.as_view(), name='cash_back'),
-
+    path('matched/', MatchedCreateAPIView.as_view(), name='matched'),
+    path('get_describe/',GetDescribeAPIView.as_view(), name='get_descirbe'),
 ]
